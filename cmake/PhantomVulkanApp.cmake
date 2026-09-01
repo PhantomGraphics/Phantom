@@ -1,30 +1,30 @@
 # Idempotent Vulkan/GLFW discovery + Vulkan-dependent core-library builders,
 # shared across this repo's standalone-per-module and root CMake builds
 # (docs/todo/PLAN_crossplatform_non_cgapp_build.md Phase 4 §5.4 item 1).
-# Include cmake/CrystalCoreLibs.cmake first -- crystal_add_uiwidgets_core()/
-# crystal_add_gltfrenderer_core()/crystal_add_volumerenderer_core() depend on
+# Include cmake/PhantomCoreLibs.cmake first -- phantom_add_uiwidgets_core()/
+# phantom_add_gltfrenderer_core()/phantom_add_volumerenderer_core() depend on
 # its Math/Graphics/Space/Volume/File/Animation builders.
 #
-# Callers must set CGLIB_ROOT/REPO_ROOT/CRYSTAL_WARN_FLAGS (see
-# CrystalCoreLibs.cmake's header comment) before calling anything here.
+# Callers must set CGLIB_ROOT/REPO_ROOT/PHANTOM_WARN_FLAGS (see
+# PhantomCoreLibs.cmake's header comment) before calling anything here.
 #
-# crystal_find_vulkan_headers()/crystal_find_vulkan_loader()/
-# crystal_find_glfw_loader() each resolve once per configure (guarded by a
+# phantom_find_vulkan_headers()/phantom_find_vulkan_loader()/
+# phantom_find_glfw_loader() each resolve once per configure (guarded by a
 # CACHE INTERNAL entry) and publish:
-#   CRYSTAL_VULKAN_INCLUDE_DIR  -- directory containing vulkan/vulkan.h, or "" if not found
-#   CRYSTAL_VULKAN_LIBRARY      -- path to the Vulkan loader, or "" if not found
-#   CRYSTAL_GLFW_LIBRARY        -- path to a GLFW loader, or "" if not found
+#   PHANTOM_VULKAN_INCLUDE_DIR  -- directory containing vulkan/vulkan.h, or "" if not found
+#   PHANTOM_VULKAN_LIBRARY      -- path to the Vulkan loader, or "" if not found
+#   PHANTOM_GLFW_LIBRARY        -- path to a GLFW loader, or "" if not found
 # Every add_subdirectory()'d module that needs Vulkan/GLFW should call these
 # and gate its own targets on the result being non-empty, exactly like every
 # pre-Phase-4 CMakeLists.txt already did with its own locally-prefixed copy of
 # this same discovery logic -- must be a standalone/system Vulkan+GLFW
 # install, never an app-bundled copy (e.g. Blender's). Only
-# crystal_find_vulkan_headers() is required to build the *Core libraries
+# phantom_find_vulkan_headers() is required to build the *Core libraries
 # below (compile-only); the loader/GLFW discovery is only needed to link an
 # actual executable.
 
-function(crystal_find_vulkan_headers)
-    if(DEFINED CACHE{CRYSTAL_VULKAN_INCLUDE_DIR})
+function(phantom_find_vulkan_headers)
+    if(DEFINED CACHE{PHANTOM_VULKAN_INCLUDE_DIR})
         return()
     endif()
     set(_default "")
@@ -44,15 +44,15 @@ function(crystal_find_vulkan_headers)
     endif()
 
     if(_resolved)
-        message(STATUS "Crystal: using Vulkan headers from ${_resolved}")
+        message(STATUS "Phantom: using Vulkan headers from ${_resolved}")
     else()
-        message(WARNING "Crystal: vulkan/vulkan.h not found -- Vulkan-dependent targets are skipped. Pass -DVULKAN_INCLUDE_DIR=/path/to/include to enable them (on Windows, check $ENV{VULKAN_SDK} is set).")
+        message(WARNING "Phantom: vulkan/vulkan.h not found -- Vulkan-dependent targets are skipped. Pass -DVULKAN_INCLUDE_DIR=/path/to/include to enable them (on Windows, check $ENV{VULKAN_SDK} is set).")
     endif()
-    set(CRYSTAL_VULKAN_INCLUDE_DIR "${_resolved}" CACHE INTERNAL "Resolved Vulkan headers directory, empty if not found")
+    set(PHANTOM_VULKAN_INCLUDE_DIR "${_resolved}" CACHE INTERNAL "Resolved Vulkan headers directory, empty if not found")
 endfunction()
 
-function(crystal_find_vulkan_loader)
-    if(DEFINED CACHE{CRYSTAL_VULKAN_LIBRARY})
+function(phantom_find_vulkan_loader)
+    if(DEFINED CACHE{PHANTOM_VULKAN_LIBRARY})
         return()
     endif()
     set(_default "")
@@ -67,11 +67,11 @@ function(crystal_find_vulkan_loader)
     else()
         set(_found ${VULKAN_LIBRARY})
     endif()
-    set(CRYSTAL_VULKAN_LIBRARY "${_found}" CACHE INTERNAL "Resolved Vulkan loader path, empty if not found")
+    set(PHANTOM_VULKAN_LIBRARY "${_found}" CACHE INTERNAL "Resolved Vulkan loader path, empty if not found")
 endfunction()
 
-function(crystal_find_glfw_loader)
-    if(DEFINED CACHE{CRYSTAL_GLFW_LIBRARY})
+function(phantom_find_glfw_loader)
+    if(DEFINED CACHE{PHANTOM_GLFW_LIBRARY})
         return()
     endif()
     set(_default "")
@@ -86,14 +86,14 @@ function(crystal_find_glfw_loader)
     else()
         set(_found ${GLFW_LIBRARY})
     endif()
-    set(CRYSTAL_GLFW_LIBRARY "${_found}" CACHE INTERNAL "Resolved GLFW loader path, empty if not found")
+    set(PHANTOM_GLFW_LIBRARY "${_found}" CACHE INTERNAL "Resolved GLFW loader path, empty if not found")
 endfunction()
 
 # ---------------------------------------------------------------------------
-# VulkanGraphics (Crystal::VKG) -- depends on Vulkan headers + vendored glm/VMA
+# VulkanGraphics (Phantom::VKG) -- depends on Vulkan headers + vendored glm/VMA
 # ---------------------------------------------------------------------------
 
-function(crystal_add_vulkangraphics_core)
+function(phantom_add_vulkangraphics_core)
     if(TARGET VulkanGraphicsCore)
         return()
     endif()
@@ -101,23 +101,23 @@ function(crystal_add_vulkangraphics_core)
     add_library(VulkanGraphicsCore STATIC ${_sources})
     target_include_directories(VulkanGraphicsCore PUBLIC
         ${CGLIB_ROOT}
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
         ${CGLIB_ROOT}/ThirdParty/glm-0.9.9.8
         ${CGLIB_ROOT}/ThirdParty/VulkanMemoryAllocator
     )
-    target_compile_options(VulkanGraphicsCore PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(VulkanGraphicsCore PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(VulkanGraphicsCore PRIVATE cxx_std_20)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# UIWidgets (Crystal::UI) -- ImGui core+backends, depends on Graphics + Vulkan/GLFW headers
+# UIWidgets (Phantom::UI) -- ImGui core+backends, depends on Graphics + Vulkan/GLFW headers
 # ---------------------------------------------------------------------------
 
-function(crystal_add_uiwidgets_core)
+function(phantom_add_uiwidgets_core)
     if(TARGET UIWidgetsCore)
         return()
     endif()
-    crystal_add_graphics_core()
+    phantom_add_graphics_core()
     set(_imgui_dir ${CGLIB_ROOT}/ThirdParty/imgui)
     add_library(UIWidgetsCore STATIC
         ${CGLIB_ROOT}/UIWidgets/BoolView.cpp
@@ -163,10 +163,10 @@ function(crystal_add_uiwidgets_core)
         ${CGLIB_ROOT}/Graphics
         ${_imgui_dir}
         ${CGLIB_ROOT}/ThirdParty/glfw-3.3.8/include
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
     )
     target_link_libraries(UIWidgetsCore PUBLIC GraphicsCore MathCore)
-    target_compile_options(UIWidgetsCore PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(UIWidgetsCore PRIVATE ${PHANTOM_WARN_FLAGS})
     # Linux has no GL/gl.h without mesa dev packages; imgui_impl_glfw.cpp
     # doesn't request a client API itself, so glfw3.h defaults to pulling it
     # in unless told not to. Every app in this repo is Vulkan-only -- kept
@@ -178,15 +178,15 @@ function(crystal_add_uiwidgets_core)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# VkAppBase (Crystal::VKG app scaffold: window/swapchain/ImGui glue + ScenarioRunner)
+# VkAppBase (Phantom::VKG app scaffold: window/swapchain/ImGui glue + ScenarioRunner)
 # ---------------------------------------------------------------------------
 
-function(crystal_add_vkappbase_core)
+function(phantom_add_vkappbase_core)
     if(TARGET VkAppBaseCore)
         return()
     endif()
-    crystal_add_vulkangraphics_core()
-    crystal_add_uiwidgets_core()
+    phantom_add_vulkangraphics_core()
+    phantom_add_uiwidgets_core()
     add_library(VkAppBaseCore STATIC
         ${CGLIB_ROOT}/VkAppBase/VkAppBase.cpp
         ${CGLIB_ROOT}/VkAppBase/VkRendererBase.cpp
@@ -196,7 +196,7 @@ function(crystal_add_vkappbase_core)
     )
     target_include_directories(VkAppBaseCore PUBLIC
         ${REPO_ROOT}
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
         ${CGLIB_ROOT}/ThirdParty/glm-0.9.9.8
         ${CGLIB_ROOT}/ThirdParty/glfw-3.3.8/include
         ${CGLIB_ROOT}/VulkanGraphics
@@ -205,19 +205,19 @@ function(crystal_add_vkappbase_core)
         ${CGLIB_ROOT}/VkAppBase
     )
     target_link_libraries(VkAppBaseCore PUBLIC VulkanGraphicsCore UIWidgetsCore)
-    target_compile_options(VkAppBaseCore PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(VkAppBaseCore PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(VkAppBaseCore PRIVATE cxx_std_20)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# VkRenderer (Crystal::VKR line/point/triangle/tex/skybox renderers)
+# VkRenderer (Phantom::VKR line/point/triangle/tex/skybox renderers)
 # ---------------------------------------------------------------------------
 
-function(crystal_add_vkrenderer_core)
+function(phantom_add_vkrenderer_core)
     if(TARGET VkRendererCore)
         return()
     endif()
-    crystal_add_vulkangraphics_core()
+    phantom_add_vulkangraphics_core()
     add_library(VkRendererCore STATIC
         ${CGLIB_ROOT}/Renderer/VkRenderer/VkPointRenderer.cpp
         ${CGLIB_ROOT}/Renderer/VkRenderer/VkLineRenderer.cpp
@@ -228,7 +228,7 @@ function(crystal_add_vkrenderer_core)
     target_include_directories(VkRendererCore PUBLIC
         ${REPO_ROOT}
         ${CGLIB_ROOT}/ThirdParty/imgui
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
         ${CGLIB_ROOT}/ThirdParty/glm-0.9.9.8
         ${CGLIB_ROOT}/ThirdParty/glfw-3.3.8/include
         ${CGLIB_ROOT}/VkAppBase
@@ -237,26 +237,26 @@ function(crystal_add_vkrenderer_core)
         ${CGLIB_ROOT}/Renderer/VkRenderer
     )
     target_link_libraries(VkRendererCore PUBLIC VulkanGraphicsCore)
-    target_compile_options(VkRendererCore PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(VkRendererCore PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(VkRendererCore PRIVATE cxx_std_20)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# GltfRendererCore (Crystal::Gltf / Crystal::Vrm) -- needs File+Animation+the
-# Vulkan/VkAppBase chain (see the Crystal/GltfRenderer/CMakeLists.txt file
+# GltfRendererCore (Phantom::Gltf / Phantom::Vrm) -- needs File+Animation+the
+# Vulkan/VkAppBase chain (see the CGLib/GltfRenderer/CMakeLists.txt file
 # header this was extracted from for why GltfRendererTest can't be built
 # Vulkan-independently: GltfSceneRenderer.cpp/ShadowMapPass.cpp/
-# LightManager.cpp use Crystal::VKG types directly).
+# LightManager.cpp use Phantom::VKG types directly).
 # ---------------------------------------------------------------------------
 
-function(crystal_add_gltfrenderer_core)
+function(phantom_add_gltfrenderer_core)
     if(TARGET GltfRendererCore)
         return()
     endif()
-    crystal_add_file_core()
-    crystal_add_animation_core()
-    crystal_add_vulkangraphics_core()
-    crystal_add_vkappbase_core()
+    phantom_add_file_core()
+    phantom_add_animation_core()
+    phantom_add_vulkangraphics_core()
+    phantom_add_vkappbase_core()
     set(_gltfr_root ${CGLIB_ROOT}/GltfRenderer)
     add_library(GltfRendererCore STATIC
         ${_gltfr_root}/Gltf/GltfReader.cpp
@@ -287,7 +287,7 @@ function(crystal_add_gltfrenderer_core)
         ${CGLIB_ROOT}/ThirdParty/glfw-3.3.8/include
         ${CGLIB_ROOT}/VkAppBase
         ${CGLIB_ROOT}/VulkanGraphics
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
     )
     target_link_libraries(GltfRendererCore PUBLIC
         FileCore
@@ -297,22 +297,22 @@ function(crystal_add_gltfrenderer_core)
         MathCore
         GraphicsCore
     )
-    target_compile_options(GltfRendererCore PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(GltfRendererCore PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(GltfRendererCore PRIVATE cxx_std_20)
 endfunction()
 
 # ---------------------------------------------------------------------------
-# VolumeRenderer (Crystal::VKR PBVR particle/opacity-shadow-map pipeline) --
-# shared between Crystal/Volume's own VolumeView and PointCloud/GSView (which
+# VolumeRenderer (Phantom::VKR PBVR particle/opacity-shadow-map pipeline) --
+# shared between CGLib/Volume's own VolumeView and PointCloud/GSView (which
 # used to duplicate this as GSViewVolumeCore/GSViewVolumeRenderer).
 # ---------------------------------------------------------------------------
 
-function(crystal_add_volumerenderer_core)
+function(phantom_add_volumerenderer_core)
     if(TARGET VolumeRenderer)
         return()
     endif()
-    crystal_add_volume_core()
-    crystal_add_vulkangraphics_core()
+    phantom_add_volume_core()
+    phantom_add_vulkangraphics_core()
     add_library(VolumeRenderer STATIC
         ${CGLIB_ROOT}/Volume/VolumeRenderer/ParticleGenerator.cpp
         ${CGLIB_ROOT}/Volume/VolumeRenderer/TransferFunction.cpp
@@ -324,9 +324,9 @@ function(crystal_add_volumerenderer_core)
     target_include_directories(VolumeRenderer PUBLIC
         ${REPO_ROOT}
         ${CGLIB_ROOT}/ThirdParty/glm-0.9.9.8
-        ${CRYSTAL_VULKAN_INCLUDE_DIR}
+        ${PHANTOM_VULKAN_INCLUDE_DIR}
     )
     target_link_libraries(VolumeRenderer PUBLIC VulkanGraphicsCore VolumeCore)
-    target_compile_options(VolumeRenderer PRIVATE ${CRYSTAL_WARN_FLAGS})
+    target_compile_options(VolumeRenderer PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(VolumeRenderer PRIVATE cxx_std_20)
 endfunction()

@@ -4,8 +4,8 @@ Phantom is the public integration repository for a C++ graphics and physics
 research framework. It pins the public components at compatible revisions and
 builds them together with CMake.
 
-`CGApp` is intentionally not part of this repository. It remains in the
-private `Crystal2024` integration repository.
+`CGApp` is intentionally not part of this repository. It remains in a
+separate private integration repository.
 
 ## Layout
 

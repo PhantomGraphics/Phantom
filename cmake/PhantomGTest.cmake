@@ -2,16 +2,16 @@
 # repo's standalone-per-module and root CMake builds
 # (docs/todo/PLAN_crossplatform_non_cgapp_build.md Phase 4 §5.4 item 1 --
 # extracted from the near-identical find_package(GTest)+NuGet-fallback block
-# that used to be copy-pasted into every one of CGLib/, Crystal/Space,
-# Crystal/Volume, Crystal/File, Crystal/Numerics, Crystal/Scene,
-# Crystal/Animation, Crystal/GltfRenderer, Physics, PointCloud, RayTracer's
+# that used to be copy-pasted into every one of CGLib/, CGLib/Space,
+# CGLib/Volume, CGLib/File, CGLib/Numerics, CGLib/Scene,
+# CGLib/Animation, CGLib/GltfRenderer, Physics, PointCloud, RayTracer's
 # own CMakeLists.txt).
 #
-# Call crystal_find_gtest() once per CMakeLists.txt that defines a *Test
-# target, then check CRYSTAL_GTEST_FOUND. Safe to call from more than one
+# Call phantom_find_gtest() once per CMakeLists.txt that defines a *Test
+# target, then check PHANTOM_GTEST_FOUND. Safe to call from more than one
 # add_subdirectory()'d module in the same configure -- the underlying
 # GTest::gtest/GTest::gtest_main imported targets are only ever created once
-# (guarded by the CRYSTAL_GTEST_FOUND cache entry itself), every later caller
+# (guarded by the PHANTOM_GTEST_FOUND cache entry itself), every later caller
 # just reuses them.
 #
 # Requires REPO_ROOT to already be set by the caller (absolute path to the
@@ -24,8 +24,8 @@
 # already restores (Microsoft.googletest.v140.windesktop.msvcstl.static.
 # rt-dyn.1.8.1.7), not a second GTest source/version.
 
-function(crystal_find_gtest)
-    # Deliberately NOT gated on the CRYSTAL_GTEST_FOUND *value* below: that's a CACHE INTERNAL
+function(phantom_find_gtest)
+    # Deliberately NOT gated on the PHANTOM_GTEST_FOUND *value* below: that's a CACHE INTERNAL
     # entry, so it persists in CMakeCache.txt across separate `cmake` invocations on the same
     # build dir, but the GTest::gtest/GTest::gtest_main IMPORTED targets it's meant to guard do
     # NOT persist (IMPORTED targets are recreated fresh every configure pass, cache or not) --
@@ -34,7 +34,7 @@ function(crystal_find_gtest)
     # so every later `target_link_libraries(FooTest ... GTest::gtest ...)` failed with "target
     # was not found" (found running CGApp/build_cgapp.ps1 twice in a row, Phase 5 of
     # docs/todo/PLAN_crossplatform_non_cgapp_build.md). Gate on target existence instead, same
-    # idiom every crystal_add_*_core() guard in CrystalCoreLibs.cmake/CrystalVulkanApp.cmake
+    # idiom every phantom_add_*_core() guard in PhantomCoreLibs.cmake/PhantomVulkanApp.cmake
     # already uses -- true only once actually (re)created within the current configure pass.
     if(TARGET GTest::gtest OR TARGET GTest::gtest_main)
         return()
@@ -43,7 +43,7 @@ function(crystal_find_gtest)
     find_package(GTest)
 
     # find_package(GTest) creates GTest::gtest/GTest::gtest_main as IMPORTED
-    # targets scoped to this directory (CGLib's, since crystal_find_gtest()'s
+    # targets scoped to this directory (CGLib's, since phantom_find_gtest()'s
     # actual search only ever runs once, guarded by the CACHE check above) --
     # unlike regular add_library() targets (MathCore etc.), IMPORTED targets
     # are NOT visible from sibling add_subdirectory() trees by default.
@@ -59,9 +59,9 @@ function(crystal_find_gtest)
     if(NOT GTest_FOUND AND WIN32)
         set(_nuget_package Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7)
         set(_nuget_root "")
-        # Phantom is also consumed as a submodule of the private Crystal2024
-        # superproject.  In that layout NuGet packages remain at the private
-        # root, one directory above this public checkout.
+        # Phantom is also consumed as a submodule of a private superproject.
+        # In that layout NuGet packages remain at the private root, one
+        # directory above this public checkout.
         foreach(_packages_root "${REPO_ROOT}/packages" "${REPO_ROOT}/../packages")
             if(EXISTS "${_packages_root}/${_nuget_package}")
                 set(_nuget_root "${_packages_root}/${_nuget_package}")
@@ -95,11 +95,11 @@ function(crystal_find_gtest)
                 INTERFACE_LINK_LIBRARIES GTest::gtest
             )
             set(GTest_FOUND TRUE)
-            message(STATUS "Crystal: using vendored NuGet GTest from ${_nuget_root} (${_config})")
+            message(STATUS "Phantom: using vendored NuGet GTest from ${_nuget_root} (${_config})")
         else()
-            message(WARNING "Crystal: NuGet GTest package not found at ${_nuget_root} -- *Test targets are skipped. Restore it once via any .vcxproj-based build first.")
+            message(WARNING "Phantom: NuGet GTest package not found at ${_nuget_root} -- *Test targets are skipped. Restore it once via any .vcxproj-based build first.")
         endif()
     endif()
 
-    set(CRYSTAL_GTEST_FOUND ${GTest_FOUND} CACHE INTERNAL "Whether GTest::gtest/GTest::gtest_main are available")
+    set(PHANTOM_GTEST_FOUND ${GTest_FOUND} CACHE INTERNAL "Whether GTest::gtest/GTest::gtest_main are available")
 endfunction()
