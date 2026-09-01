@@ -1,0 +1,12 @@
+[submodule "CGLib"]
+	path = CGLib
+	url = git@github-phantom:PhantomGraphics/CGLib.git
+[submodule "Physics"]
+	path = Physics
+	url = git@github-phantom:PhantomGraphics/Physics.git
+[submodule "PointCloud"]
+	path = PointCloud
+	url = git@github-phantom:PhantomGraphics/PointCloud.git
+[submodule "RayTracer"]
+	path = RayTracer
+	url = git@github-phantom:PhantomGraphics/RayTracer.git
