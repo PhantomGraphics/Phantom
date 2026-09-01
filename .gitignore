@@ -1,0 +1,16 @@
+# CMake and generated build output
+/build/
+/out/
+/CMakeCache.txt
+/CMakeFiles/
+/Testing/
+/compile_commands.json
+
+# IDE and editor state
+/.vs/
+/.idea/
+*.user
+*.suo
+
+# Local captures and generated assets
+/screenshots/
