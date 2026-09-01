@@ -11,6 +11,7 @@ private `Crystal2024` integration repository.
 
 ```text
 Phantom/
+├── cmake/         # shared CMake modules used by the public components
 ├── CGLib/        # Git submodule: common graphics and numerical libraries
 ├── Physics/      # Git submodule: physics simulation
 ├── PointCloud/   # Git submodule: point-cloud processing and rendering
