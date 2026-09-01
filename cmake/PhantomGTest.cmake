@@ -57,7 +57,17 @@ function(crystal_find_gtest)
     endif()
 
     if(NOT GTest_FOUND AND WIN32)
-        set(_nuget_root ${REPO_ROOT}/packages/Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7)
+        set(_nuget_package Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.7)
+        set(_nuget_root "")
+        # Phantom is also consumed as a submodule of the private Crystal2024
+        # superproject.  In that layout NuGet packages remain at the private
+        # root, one directory above this public checkout.
+        foreach(_packages_root "${REPO_ROOT}/packages" "${REPO_ROOT}/../packages")
+            if(EXISTS "${_packages_root}/${_nuget_package}")
+                set(_nuget_root "${_packages_root}/${_nuget_package}")
+                break()
+            endif()
+        endforeach()
 
         if(EXISTS ${_nuget_root})
             set(_config "Release")

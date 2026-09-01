@@ -12,14 +12,26 @@ endif()
 
 enable_testing()
 
-# Public components are pinned by this superproject as Git submodules.  They
-# deliberately live at the repository root so the private Crystal2024
-# integration repository can retain the same layout while adding CGApp.
+# Public components are pinned by this superproject as Git submodules.  The
+# shared core targets are idempotent, so this ordered list can build CGLib's
+# base libraries and its higher-level modules alongside the dependent projects.
 set(PHANTOM_PUBLIC_MODULES
     CGLib
+    CGLib/Numerics
+    CGLib/File
+    CGLib/Scene
+    CGLib/Volume
     Physics
+    RayTracer
+    CGLib/Renderer
+    CGLib/GltfRenderer
+    CGLib/Animation
     PointCloud
-    RayTracer)
+    CGLib/Space
+    CGLib/Gizmo
+    CGLib/Input
+    CGLib/Particles
+    CGLib/PostProcess)
 
 foreach(module IN LISTS PHANTOM_PUBLIC_MODULES)
     if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${module}/CMakeLists.txt")
