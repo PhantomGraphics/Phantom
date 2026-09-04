@@ -7,6 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    # This is normally supplied by CMakePresets.json (windows-debug / windows-release
+    # etc.). If it is missing here it usually means a preset re-configure lost it
+    # -- e.g. a bare compiler name in a preset's cacheVariables making CMake wipe
+    # the cache and re-run configure (that bug silently turned Release builds into
+    # Debug-CRT ones until 2026-09-04). Warn loudly rather than let it pass unseen.
+    message(WARNING "CMAKE_BUILD_TYPE was not set -- defaulting to Debug. "
+                    "If you meant to build Release, re-run with a preset "
+                    "(cmake --preset windows-release) or -DCMAKE_BUILD_TYPE=Release.")
     set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 endif()
 
