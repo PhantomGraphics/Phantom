@@ -330,3 +330,72 @@ function(phantom_add_volumerenderer_core)
     target_compile_options(VolumeRenderer PRIVATE ${PHANTOM_WARN_FLAGS})
     target_compile_features(VolumeRenderer PRIVATE cxx_std_20)
 endfunction()
+
+# ---------------------------------------------------------------------------
+# phantom_add_runtime_shaders(<target> <shader_dir> [<shader_dir> ...])
+#
+# Compiles every *.vert/*.frag/*.comp under the given source directories to
+# SPIR-V with glslc and copies the results next to <target>'s executable as
+# "shaders/<name>.spv" (a POST_BUILD copy_directory, matching each app's
+# historical MSBuild PostBuildEvent). The *.spv files are intentionally
+# Git-ignored, so on a clean checkout merely copying the GLSL source dir is
+# not enough -- VulkanSPVResolver.h would hand vkCreateShaderModule a
+# zero-sized blob and the viewer crashes at startup. Promoted here from
+# Physics/CMakeLists.txt so PointCloud/PointCloudView (and GSView) get the
+# same treatment.
+#
+# When two source directories contain a shader with the same file name, the
+# one listed FIRST wins (the later dir's copy is skipped). PointCloudView
+# relies on this: it passes PointRenderer/shaders before PointCloudView/shaders
+# so PointRenderer's point.vert/gs_splat.frag (which its VkPointRenderer
+# pipeline expects) are used, while PointCloudView/shaders still supplies the
+# triangle.* pair PointRenderer does not have -- matching the old build's
+# "copy PointCloudView/shaders, then let PointRenderer/shaders overwrite" order.
+# ---------------------------------------------------------------------------
+
+function(phantom_find_glslc)
+    if(DEFINED PHANTOM_GLSLC_EXECUTABLE AND PHANTOM_GLSLC_EXECUTABLE)
+        return()
+    endif()
+    find_program(PHANTOM_GLSLC_EXECUTABLE
+        NAMES glslc glslc.exe
+        HINTS "$ENV{VULKAN_SDK}/Bin" "$ENV{VULKAN_SDK}/bin")
+    if(NOT PHANTOM_GLSLC_EXECUTABLE)
+        message(FATAL_ERROR
+            "Vulkan viewers require glslc to compile runtime shaders. "
+            "Install the Vulkan SDK or set VULKAN_SDK.")
+    endif()
+endfunction()
+
+function(phantom_add_runtime_shaders target)
+    phantom_find_glslc()
+    set(shader_output_dir "${CMAKE_CURRENT_BINARY_DIR}/${target}_shaders")
+    set(shader_outputs)
+    set(shader_seen_names)
+    foreach(shader_dir IN LISTS ARGN)
+        file(GLOB shader_sources CONFIGURE_DEPENDS
+            "${shader_dir}/*.vert" "${shader_dir}/*.frag" "${shader_dir}/*.comp")
+        foreach(shader_source IN LISTS shader_sources)
+            get_filename_component(shader_name "${shader_source}" NAME)
+            if(shader_name IN_LIST shader_seen_names)
+                continue()  # earlier-listed dir already provided this file name
+            endif()
+            list(APPEND shader_seen_names "${shader_name}")
+            set(shader_output "${shader_output_dir}/${shader_name}.spv")
+            add_custom_command(
+                OUTPUT "${shader_output}"
+                COMMAND ${CMAKE_COMMAND} -E make_directory "${shader_output_dir}"
+                COMMAND "${PHANTOM_GLSLC_EXECUTABLE}" "${shader_source}" -o "${shader_output}"
+                DEPENDS "${shader_source}"
+                COMMENT "Compiling ${shader_name}"
+                VERBATIM)
+            list(APPEND shader_outputs "${shader_output}")
+        endforeach()
+    endforeach()
+
+    add_custom_target(${target}Shaders DEPENDS ${shader_outputs})
+    add_dependencies(${target} ${target}Shaders)
+    add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${shader_output_dir}" "$<TARGET_FILE_DIR:${target}>/shaders")
+endfunction()
