@@ -128,6 +128,7 @@ function(phantom_add_uiwidgets_core)
         ${CGLIB_ROOT}/UIWidgets/ComboBox.cpp
         ${CGLIB_ROOT}/UIWidgets/Cylinder3dView.cpp
         ${CGLIB_ROOT}/UIWidgets/DirectoryView.cpp
+        ${CGLIB_ROOT}/UIWidgets/DisableScope.cpp
         ${CGLIB_ROOT}/UIWidgets/Ellipse3dView.cpp
         ${CGLIB_ROOT}/UIWidgets/Ellipsoid3dView.cpp
         ${CGLIB_ROOT}/UIWidgets/FileOpenDialog.cpp
@@ -136,9 +137,12 @@ function(phantom_add_uiwidgets_core)
         ${CGLIB_ROOT}/UIWidgets/FileSaveView.cpp
         ${CGLIB_ROOT}/UIWidgets/Float4View.cpp
         ${CGLIB_ROOT}/UIWidgets/FloatView.cpp
+        ${CGLIB_ROOT}/UIWidgets/FloatDrag.cpp
+        ${CGLIB_ROOT}/UIWidgets/FloatSlider.cpp
         ${CGLIB_ROOT}/UIWidgets/IMenu.cpp
         ${CGLIB_ROOT}/UIWidgets/IMenuItem.cpp
         ${CGLIB_ROOT}/UIWidgets/IdScope.cpp
+        ${CGLIB_ROOT}/UIWidgets/IntSlider.cpp
         ${CGLIB_ROOT}/UIWidgets/IntView.cpp
         ${CGLIB_ROOT}/UIWidgets/Label.cpp
         ${CGLIB_ROOT}/UIWidgets/Line3dView.cpp
