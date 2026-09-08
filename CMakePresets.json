@@ -26,6 +26,20 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "Release" }
     },
     {
+      "name": "windows-vs",
+      "displayName": "Windows x64 (Visual Studio 2026 solution)",
+      "description": "Generates Phantom.sln + per-target .vcxproj under build/windows-vs/ for IDE use. Multi-config: pick Debug/Release inside VS. The Ninja presets (windows-debug/windows-release) remain the build of record; CGApp/build_cgapp.ps1 still uses those.",
+      "generator": "Visual Studio 18 2026",
+      "architecture": "x64",
+      "toolset": "v145",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "condition": {
+        "type": "equals",
+        "lhs": "${hostSystemName}",
+        "rhs": "Windows"
+      }
+    },
+    {
       "name": "linux-base",
       "hidden": true,
       "generator": "Ninja",
@@ -56,6 +70,8 @@
   "buildPresets": [
     { "name": "windows-debug", "configurePreset": "windows-debug" },
     { "name": "windows-release", "configurePreset": "windows-release" },
+    { "name": "windows-vs-debug", "configurePreset": "windows-vs", "configuration": "Debug" },
+    { "name": "windows-vs-release", "configurePreset": "windows-vs", "configuration": "Release" },
     { "name": "linux-debug", "configurePreset": "linux-debug" },
     { "name": "linux-release", "configurePreset": "linux-release" }
   ],
@@ -68,6 +84,18 @@
     {
       "name": "windows-release",
       "configurePreset": "windows-release",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "windows-vs-debug",
+      "configurePreset": "windows-vs",
+      "configuration": "Debug",
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "windows-vs-release",
+      "configurePreset": "windows-vs",
+      "configuration": "Release",
       "output": { "outputOnFailure": true }
     },
     {

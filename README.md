@@ -36,6 +36,24 @@ For an existing checkout:
 git submodule update --init --recursive
 ```
 
+### Visual Studio solution
+
+The Ninja presets above are the build of record. To develop in the Visual
+Studio 2026 IDE, use the `windows-vs` preset instead — it runs the CMake
+"Visual Studio 18 2026" generator and writes `Phantom.slnx` plus one
+`.vcxproj` per target under `build/windows-vs/` (git-ignored, regenerated on
+every configure, so it never drifts from the CMake build):
+
+```powershell
+cmake --preset windows-vs
+start build\windows-vs\Phantom.slnx
+```
+
+It is a multi-config solution — choose Debug/Release in the VS toolbar.
+(VS 2026 can also just "Open Folder" on this directory and use any preset
+directly; the `windows-vs` preset is only needed when you specifically want
+a `.slnx`/`.vcxproj` tree.)
+
 ## Component ownership
 
 Each component is independently buildable and publishes its own source,
