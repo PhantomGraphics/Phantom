@@ -274,6 +274,7 @@ function(phantom_add_gltfrenderer_core)
         ${_gltfr_root}/Gltf/GltfReader.cpp
         ${_gltfr_root}/Gltf/GltfAccessorView.cpp
         ${_gltfr_root}/Gltf/GltfBounds.cpp
+        ${_gltfr_root}/Gltf/GltfLightsCameras.cpp
         ${_gltfr_root}/Gltf/SkeletonGltfConverter.cpp
         ${_gltfr_root}/Gltf/MmdAnimationBaker.cpp
         ${_gltfr_root}/Gltf/GltfAnimationEvaluator.cpp
@@ -285,6 +286,7 @@ function(phantom_add_gltfrenderer_core)
         ${_gltfr_root}/Vrm/VrmMToonFallback.cpp
         ${_gltfr_root}/Vrm/VrmReader.cpp
         ${_gltfr_root}/IBL/GltfIBLPrecomputer.cpp
+        ${_gltfr_root}/IBL/GltfEnvironmentCubemap.cpp
         ${_gltfr_root}/Renderer/GltfMesh.cpp
         ${_gltfr_root}/Renderer/GltfMaterial.cpp
         ${_gltfr_root}/Renderer/GltfSceneRenderer.cpp
