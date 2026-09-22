@@ -415,7 +415,26 @@ function(phantom_add_runtime_shaders target)
 
     add_custom_target(${target}Shaders DEPENDS ${shader_outputs})
     add_dependencies(${target} ${target}Shaders)
-    add_custom_command(TARGET ${target} POST_BUILD
+
+    # A TARGET POST_BUILD command only re-runs when the target itself relinks
+    # (Ninja generator): a GLSL-only edit recompiles shader_outputs above but
+    # does not touch any .obj/.lib the linker reads, so the exe is considered
+    # up to date and the copy below was silently skipped, leaving a stale
+    # runtime/shaders/*.spv next to the exe (discovered via
+    # PLAN_pbvr_gps_ensemble_lod.md Phase 4 bank-reuse debugging: the ${target}
+    # rebuild logged "Compiling X.comp" yet the exe kept running the pre-edit
+    # shader). Route it through its own OUTPUT/DEPENDS custom command instead,
+    # so it is a real Ninja edge keyed on shader_outputs, independent of
+    # whether the exe relinks.
+    set(shader_copy_stamp "${shader_output_dir}/.copied_to_runtime")
+    add_custom_command(
+        OUTPUT "${shader_copy_stamp}"
         COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${shader_output_dir}" "$<TARGET_FILE_DIR:${target}>/shaders")
+            "${shader_output_dir}" "$<TARGET_FILE_DIR:${target}>/shaders"
+        COMMAND ${CMAKE_COMMAND} -E touch "${shader_copy_stamp}"
+        DEPENDS ${shader_outputs}
+        COMMENT "Copying ${target} runtime shaders"
+        VERBATIM)
+    add_custom_target(${target}ShadersCopy DEPENDS "${shader_copy_stamp}")
+    add_dependencies(${target} ${target}ShadersCopy)
 endfunction()
