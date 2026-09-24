@@ -402,13 +402,30 @@ function(phantom_add_runtime_shaders target)
             endif()
             list(APPEND shader_seen_names "${shader_name}")
             set(shader_output "${shader_output_dir}/${shader_name}.spv")
-            add_custom_command(
-                OUTPUT "${shader_output}"
-                COMMAND ${CMAKE_COMMAND} -E make_directory "${shader_output_dir}"
-                COMMAND "${PHANTOM_GLSLC_EXECUTABLE}" "${shader_source}" -o "${shader_output}"
-                DEPENDS "${shader_source}"
-                COMMENT "Compiling ${shader_name}"
-                VERBATIM)
+            # Shaders may #include shared GLSL headers (GSView's gps_*.comp,
+            # PhysicsView's flame_*). DEPENDS alone only knows the top-level
+            # file, so a header-only edit left a stale .spv; with Ninja, let
+            # glslc emit a Makefile-style depfile so the header is a real edge.
+            if(CMAKE_GENERATOR MATCHES "Ninja")
+                set(shader_depfile "${shader_output}.d")
+                add_custom_command(
+                    OUTPUT "${shader_output}"
+                    COMMAND ${CMAKE_COMMAND} -E make_directory "${shader_output_dir}"
+                    COMMAND "${PHANTOM_GLSLC_EXECUTABLE}" -MD -MF "${shader_depfile}"
+                            "${shader_source}" -o "${shader_output}"
+                    DEPENDS "${shader_source}"
+                    DEPFILE "${shader_depfile}"
+                    COMMENT "Compiling ${shader_name}"
+                    VERBATIM)
+            else()
+                add_custom_command(
+                    OUTPUT "${shader_output}"
+                    COMMAND ${CMAKE_COMMAND} -E make_directory "${shader_output_dir}"
+                    COMMAND "${PHANTOM_GLSLC_EXECUTABLE}" "${shader_source}" -o "${shader_output}"
+                    DEPENDS "${shader_source}"
+                    COMMENT "Compiling ${shader_name}"
+                    VERBATIM)
+            endif()
             list(APPEND shader_outputs "${shader_output}")
         endforeach()
     endforeach()
