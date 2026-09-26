@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+
 project(Phantom LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -73,4 +75,13 @@ foreach(module IN LISTS PHANTOM_PUBLIC_MODULES)
     endif()
 
     add_subdirectory(${module})
+endforeach()
+
+# Optional downstream native projects reuse this build's Core and GoogleTest targets.
+# Public Phantom builds stay independent of private consumers such as CGApp.
+set(PHANTOM_EXTRA_PROJECTS "" CACHE STRING "Additional native CMake source directories")
+foreach(extra_project IN LISTS PHANTOM_EXTRA_PROJECTS)
+    get_filename_component(extra_project "${extra_project}" ABSOLUTE)
+    get_filename_component(extra_name "${extra_project}" NAME)
+    add_subdirectory("${extra_project}" "extensions/${extra_name}")
 endforeach()
