@@ -4,6 +4,30 @@ set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
 project(Phantom LANGUAGES CXX)
 
+# Ninja parses /showIncludes to track header dependencies. CMake's cached
+# compiler probe can contain a prefix decoded using a different code page.
+# Probe the actual output bytes again instead of linking stale objects with
+# incompatible class layouts when the invoking shell changes.
+if(MSVC AND CMAKE_GENERATOR MATCHES "Ninja")
+    set(_phantom_showincludes_dir "${CMAKE_BINARY_DIR}/CMakeFiles/PhantomShowIncludes")
+    file(MAKE_DIRECTORY "${_phantom_showincludes_dir}")
+    file(WRITE "${_phantom_showincludes_dir}/probe.h" "\n")
+    file(WRITE "${_phantom_showincludes_dir}/probe.cpp" "#include \"probe.h\"\n")
+    execute_process(
+        COMMAND "${CMAKE_CXX_COMPILER}" /nologo /utf-8 /showIncludes /c probe.cpp
+        WORKING_DIRECTORY "${_phantom_showincludes_dir}"
+        OUTPUT_VARIABLE _phantom_showincludes_output
+        ERROR_VARIABLE _phantom_showincludes_error
+        RESULT_VARIABLE _phantom_showincludes_result
+        ENCODING NONE)
+    if(_phantom_showincludes_result EQUAL 0 AND
+       _phantom_showincludes_output MATCHES "(^|\n)([^\n]+: +)[A-Za-z]:[^\n]*probe.h")
+        set(CMAKE_CL_SHOWINCLUDES_PREFIX "${CMAKE_MATCH_2}")
+    else()
+        message(FATAL_ERROR "Could not detect MSVC /showIncludes prefix: ${_phantom_showincludes_error}")
+    endif()
+endif()
+
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
