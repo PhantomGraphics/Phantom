@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y ninja-build clang libvulkan-dev libglfw3-dev libgtest-dev libomp-dev glslc
 
       - name: Configure
-        run: cmake --preset linux-debug
+        run: cmake --preset linux-debug -DPHYSICS_GENERATE_DEFAULT_ENVMAP=OFF
 
       - name: Build
         run: cmake --build --preset linux-debug -j
@@ -70,7 +70,7 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
 
       - name: Configure
-        run: cmake --preset windows-debug
+        run: cmake --preset windows-debug -DPHYSICS_GENERATE_DEFAULT_ENVMAP=OFF
         shell: cmd
 
       - name: Build
