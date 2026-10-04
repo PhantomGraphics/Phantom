@@ -25,7 +25,7 @@ jobs:
       - name: Install build tools + Vulkan/GLFW dev packages
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build clang libvulkan-dev libglfw3-dev libgtest-dev libomp-dev glslang-tools
+          sudo apt-get install -y ninja-build clang libvulkan-dev libglfw3-dev libgtest-dev libomp-dev glslc
 
       - name: Configure
         run: cmake --preset linux-debug
@@ -59,7 +59,7 @@ jobs:
       - name: Install Vulkan SDK
         if: steps.vulkan-cache.outputs.cache-hit != 'true'
         run: |
-          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.4.341.1/windows/VulkanSDK-1.4.341.1-Installer.exe" -OutFile VulkanSDK.exe
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.4.341.1/windows/vulkan_sdk.exe" -OutFile VulkanSDK.exe
           .\VulkanSDK.exe --accept-licenses --default-answer --confirm-command install
         shell: pwsh
 
