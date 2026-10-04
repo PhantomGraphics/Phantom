@@ -1,0 +1,82 @@
+# CI for Phantom's umbrella CMake build (CGLib + Physics + PointCloud + RayTracer).
+# Submodule URLs use the local SSH alias "github-phantom"; CI rewrites them to
+# public HTTPS, so no token is needed. No GPU/ICD on runners: Vulkan targets
+# only need to build/link, and ctest skips tests labelled "gpu".
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch submodules over HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github-phantom:"
+          git submodule update --init --recursive
+
+      - name: Install build tools + Vulkan/GLFW dev packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang libvulkan-dev libglfw3-dev libgtest-dev libomp-dev glslang-tools
+
+      - name: Configure
+        run: cmake --preset linux-debug
+
+      - name: Build
+        run: cmake --build --preset linux-debug -j
+
+      - name: Test
+        run: ctest --preset linux-debug -LE gpu
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch submodules over HTTPS
+        run: |
+          git config --global url."https://github.com/".insteadOf "git@github-phantom:"
+          git submodule update --init --recursive
+
+      - name: Install Ninja
+        run: choco install ninja -y
+
+      - name: Cache Vulkan SDK
+        id: vulkan-cache
+        uses: actions/cache@v4
+        with:
+          path: C:\VulkanSDK
+          key: vulkan-sdk-1.4.341.1
+
+      - name: Install Vulkan SDK
+        if: steps.vulkan-cache.outputs.cache-hit != 'true'
+        run: |
+          Invoke-WebRequest -Uri "https://sdk.lunarg.com/sdk/download/1.4.341.1/windows/VulkanSDK-1.4.341.1-Installer.exe" -OutFile VulkanSDK.exe
+          .\VulkanSDK.exe --accept-licenses --default-answer --confirm-command install
+        shell: pwsh
+
+      - name: Set VULKAN_SDK env var
+        run: echo "VULKAN_SDK=C:\VulkanSDK\1.4.341.1" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+        shell: pwsh
+
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Configure
+        run: cmake --preset windows-debug
+        shell: cmd
+
+      - name: Build
+        run: cmake --build --preset windows-debug -j
+        shell: cmd
+
+      - name: Test
+        run: ctest --preset windows-debug -LE gpu
+        shell: cmd
