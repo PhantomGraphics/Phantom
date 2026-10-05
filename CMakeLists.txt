@@ -61,6 +61,7 @@ enable_testing()
 # CGLib in. The shared phantom_add_*_core() builders are idempotent, so the
 # Physics/RayTracer/PointCloud entries reuse whatever CGLib already built.
 set(CGLIB_BUILD_TESTING ON CACHE BOOL "Build CGLib's GoogleTest suites" FORCE)
+set(CGLIB_BUILD_VIEWERS ON CACHE BOOL "Build CGLib's viewer executables (the scenario runners need them)" FORCE)
 
 # Repo-root-relative includes ("CGLib/Math/Vector3d.h", "Physics/Physics/
 # RigidBody.h") are the convention across every module here. Each module's own
