@@ -50,7 +50,7 @@ enable_testing()
 #
 # CGLib became a self-contained CMake build (its top-level CMakeLists.txt now
 # add_subdirectory()s every one of its own modules -- Numerics/File/Scene/
-# Volume/Terrain/Space/Renderer/GltfRenderer/Animation/Gizmo/Input/Particles/
+# Volume/Terrain/Space/Renderer/GltfRenderer/Animation/Editor/Particles/
 # PostProcess -- and registers their tests). So this list only names CGLib once
 # plus the projects that sit on top of it; listing CGLib's sub-modules here as
 # well would add the same source directories a second time ("binary directory
