@@ -49,7 +49,7 @@ enable_testing()
 # Public components pinned by this superproject as Git submodules.
 #
 # CGLib became a self-contained CMake build (its top-level CMakeLists.txt now
-# add_subdirectory()s every one of its own modules -- Numerics/File/Scene/
+# add_subdirectory()s every one of its own modules -- Numerics/File/
 # Volume/Terrain/Space/Renderer/GltfRenderer/Animation/Editor/Particles/
 # PostProcess -- and registers their tests). So this list only names CGLib once
 # plus the projects that sit on top of it; listing CGLib's sub-modules here as
