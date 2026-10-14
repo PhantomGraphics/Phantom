@@ -15,7 +15,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/../CGLib/cmake/PhantomVulkanApp.cmake")
 # "shaders/<name>.spv" (a POST_BUILD copy_directory, matching each app's
 # historical MSBuild PostBuildEvent). The *.spv files are intentionally
 # Git-ignored, so on a clean checkout merely copying the GLSL source dir is
-# not enough -- VulkanSPVResolver.h would hand vkCreateShaderModule a
+# not enough -- SpvResolver.h would hand vkCreateShaderModule a
 # zero-sized blob and the viewer crashes at startup. Promoted here from
 # Physics/CMakeLists.txt so PointCloud/PointCloudView (and GSView) get the
 # same treatment.
