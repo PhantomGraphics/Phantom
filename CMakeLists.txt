@@ -63,7 +63,7 @@ enable_testing()
 set(CGLIB_BUILD_TESTING ON CACHE BOOL "Build CGLib's GoogleTest suites" FORCE)
 set(CGLIB_BUILD_VIEWERS ON CACHE BOOL "Build CGLib's viewer executables (the scenario runners need them)" FORCE)
 
-# Repo-root-relative includes ("CGLib/Math/Core/Vector3d.h", "Physics/Physics/
+# Repo-root-relative includes ("CGLib/Math/Core/Vector3d.h", "Physics/Core/
 # RigidBody.h") are the convention across every module here. Each module's own
 # CMakeLists.txt puts its REPO_ROOT (= this directory) on the include path of
 # the targets it owns, but the shared Vulkan-app core libs (VkAppBaseCore,
